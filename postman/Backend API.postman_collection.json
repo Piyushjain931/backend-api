@@ -1,0 +1,56 @@
+{
+  "info": {
+    "name": "Basic Website Backend API",
+    "description": "Register and log in, then use the returned token for the protected post CRUD requests. Base URL defaults to localhost:8000.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000" },
+    { "key": "token", "value": "" },
+    { "key": "postId", "value": "" },
+    { "key": "email", "value": "student@example.com" },
+    { "key": "password", "value": "ChangeMe123!" }
+  ],
+  "item": [
+    {
+      "name": "Health check",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/health" }
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Register",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["if (pm.response.code === 201) {", "  const data = pm.response.json();", "  pm.collectionVariables.set('token', data.token);", "  pm.collectionVariables.set('email', data.user.email);", "}"] } }],
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"username\": \"Student\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/v1/users/register" }
+        },
+        {
+          "name": "Login",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["if (pm.response.code === 200) {", "  pm.collectionVariables.set('token', pm.response.json().token);", "}"] } }],
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/v1/users/login" }
+        },
+        {
+          "name": "Logout",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/api/v1/users/logout" }
+        }
+      ]
+    },
+    {
+      "name": "Posts",
+      "item": [
+        {
+          "name": "Create post",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["if (pm.response.code === 201) {", "  pm.collectionVariables.set('postId', pm.response.json().post._id);", "}"] } }],
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Ada Lovelace\",\n  \"description\": \"A sample post created from Postman.\",\n  \"age\": 36\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/v1/posts" }
+        },
+        { "name": "Get all my posts", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/api/v1/posts" } },
+        { "name": "Get one post", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/api/v1/posts/{{postId}}" } },
+        {
+          "name": "Update post",
+          "request": { "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"description\": \"Updated from Postman.\"\n}", "options": { "raw": { "language": "json" } } }, "url": "{{baseUrl}}/api/v1/posts/{{postId}}" }
+        },
+        { "name": "Delete post", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/api/v1/posts/{{postId}}" } }
+      ]
+    }
+  ]
+}
